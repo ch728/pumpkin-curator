@@ -81,17 +81,12 @@ gb.configure_column(
     "Include",
     editable=True,
     type=["booleanColumn"],
-    cellRendererFramework=JsCode("""
+    cellRenderer=JsCode("""
         function(params) {
-            const eGui = document.createElement('span');
-            eGui.innerHTML = params.value ? '✅' : '☐';
-            eGui.style.cursor = 'pointer';
-            eGui.addEventListener('click', function() {
-                params.node.setDataValue('Include', !params.value);
-            });
-            return eGui;
+            return params.value ? '✅' : '☐';
         }
     """),
+    cellEditor="agLargeTextCellEditor",
     width=80
 )
 # Source column (non-editable, gray)
