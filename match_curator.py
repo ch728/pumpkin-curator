@@ -47,7 +47,7 @@ function(params) {
 source_cell_style = JsCode("""
 function(params) {
     return {
-        'backgroundColor': '#D3D3D3',
+        'backgroundColor': '#D3D3D3',  // light gray
         'textAlign': 'center',
         'fontStyle': 'italic'
     };
@@ -61,6 +61,7 @@ function(params) {
         rowNodes: [params.node],
         force: true
     });
+    return params.value;
 }
 """)
 
@@ -70,11 +71,14 @@ function(params) {
 gb = GridOptionsBuilder.from_dataframe(df)
 gb.configure_default_column(editable=True, filter=True, sortable=True)
 
+# Include column
 gb.configure_column("Include", editable=True, type=["booleanColumn"], width=80)
 
+# Source column (non-editable, gray)
 if "Source" in df.columns:
     gb.configure_column("Source", editable=False, cellStyle=source_cell_style, width=150)
 
+# Match columns
 for i in range(1, 6):
     col = f"Match_{i}"
     if col in df.columns:
@@ -82,11 +86,13 @@ for i in range(1, 6):
             col,
             editable=True,
             cellStyle=cell_style_jscode,
-            onCellClicked=click_js
+            cellRenderer=click_js  # <-- moved from onCellClicked
         )
 
+# Selected_Match column
 gb.configure_column("Selected_Match", editable=False, width=200)
 
+# Enable copy/paste of all cells
 gb.configure_grid_options(enableRangeSelection=True, enableCopy=True)
 
 grid_options = gb.build()
@@ -105,15 +111,14 @@ grid_response = AgGrid(
     height=600
 )
 
-# ✅ FIX: guard against empty/None response
-if grid_response and "data" in grid_response and grid_response["data"] is not None:
-    df = pd.DataFrame(grid_response["data"])
+df = pd.DataFrame(grid_response["data"])
 
 # -----------------------------
 # Save progress and export patch (downloads)
 # -----------------------------
 st.subheader("Download / Export")
 
+# Save progress
 csv_progress = df.to_csv(index=False).encode("utf-8")
 st.download_button(
     label="Download Progress CSV",
@@ -122,9 +127,9 @@ st.download_button(
     mime="text/csv"
 )
 
+# Export patch CSV (exclude Source)
 patch_df = df[df["Include"] == True][["Query", "Selected_Match"]].copy()
 patch_df.columns = ["Old", "New"]
-
 csv_patch = patch_df.to_csv(index=False).encode("utf-8")
 st.download_button(
     label="Download Patch CSV",
