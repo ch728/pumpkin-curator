@@ -1,22 +1,23 @@
 import streamlit as st
-import csv
+import pandas as pd
 from st_aggrid import AgGrid
 
-st.title("CSV Viewer Without Pandas")
+st.title("CSV Viewer with Pandas")
 
-# Upload CSV
 uploaded_file = st.file_uploader("Upload CSV", type="csv")
 if uploaded_file is None:
     st.stop()
 
-# Read CSV into list of dictionaries (rows)
-decoded = uploaded_file.read().decode("utf-8").splitlines()
-reader = csv.DictReader(decoded)
-data = [row for row in reader]
+# Read CSV with pandas
+df = pd.read_csv(uploaded_file)
 
-# Show row count and first few rows
-st.write("Rows:", len(data))
-st.write("First 3 rows:", data[:3])
+# HARD sanitize: convert all columns to native Python types
+for col in df.columns:
+    df[col] = df[col].astype(object)  # ensures no StringDtype / Arrow issues
+    df[col] = df[col].where(pd.notna(df[col]), None)
 
-# Render AgGrid
-AgGrid(data, height=600)
+st.write("Shape:", df.shape)
+st.write(df.head())
+st.write(df.dtypes)
+
+AgGrid(df, height=600)
