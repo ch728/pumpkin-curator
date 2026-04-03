@@ -14,8 +14,18 @@ df = pd.read_csv(uploaded_file)
 df = df.reset_index(drop=True)
 df.columns = [str(c) for c in df.columns]
 
-# Convert all columns to plain Python objects for PyArrow/AgGrid
-df = df.astype(object).where(pd.notna(df), None)
+# Force all cells into Python-native types
+def make_arrow_safe(df):
+    for col in df.columns:
+        # Replace pd.NA with None
+        df[col] = df[col].where(pd.notna(df[col]), None)
+        # Convert pandas Extension types to native Python types
+        df[col] = df[col].apply(lambda x: x if x is None else x.item() if hasattr(x, 'item') else x)
+        # Force everything to str/int/float/None if mixed
+        df[col] = df[col].apply(lambda x: x if isinstance(x, (str, int, float, type(None))) else str(x))
+    return df
+
+df = make_arrow_safe(df)
 
 st.write("Shape:", df.shape)
 st.write(df.head())
