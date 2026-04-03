@@ -15,6 +15,13 @@ if uploaded_file is None:
 
 df = pd.read_csv(uploaded_file)
 
+# HARD sanitize (this is key)
+df = df.reset_index(drop=True)
+df.columns = [str(c) for c in df.columns]
+
+df = df.fillna("")
+for col in df.columns:
+    df[col] = df[col].astype(str)
 # -----------------------------
 # Initialize columns
 # -----------------------------
@@ -99,6 +106,9 @@ grid_options = gb.build()
 # -----------------------------
 # Render AgGrid
 # -----------------------------
+st.write("Shape:", df.shape)
+st.write(df.head())
+st.write(df.dtypes)
 
 grid_response = AgGrid(df, height=600)
 
