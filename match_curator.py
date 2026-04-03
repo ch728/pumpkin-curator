@@ -122,8 +122,13 @@ for col in df.columns:
 
 grid_response = AgGrid(
     df,
-    height=600,
-    key="main_grid"
+    gridOptions=grid_options,
+    data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
+    update_mode=GridUpdateMode.MODEL_CHANGED,
+    fit_columns_on_grid_load=True,
+    allow_unsafe_jscode=True,
+    enable_enterprise_modules=False,
+    height=600
 )
 df = pd.DataFrame(grid_response["data"])
 
