@@ -1,22 +1,21 @@
 import streamlit as st
-import pandas as pd
 from st_aggrid import AgGrid
 
-st.title("Test CSV with Arrow-safe conversion")
+st.title("Test CSV without pandas")
 
 uploaded_file = st.file_uploader("Upload CSV", type="csv")
 if uploaded_file is None:
     st.stop()
 
-df = pd.read_csv(uploaded_file)
+# Read CSV using Python's built-in csv module
+import csv
+rows = []
+with open(uploaded_file.name, newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        rows.append(row)
 
-# Force native Python types via object numpy arrays
-df = pd.DataFrame(
-    {col: df[col].to_numpy(dtype=object) for col in df.columns}
-)
-
-st.write("Shape:", df.shape)
-st.write(df.head())
-st.write(df.dtypes)
-
-AgGrid(df, height=600)
+st.write("Rows:", len(rows))
+if rows:
+    # Render AgGrid with list of dicts
+    AgGrid(rows, height=600)
