@@ -12,18 +12,25 @@ if uploaded_file is None:
 # Read CSV
 df = pd.read_csv(uploaded_file)
 
-# HARD sanitize for Arrow compatibility
+# Reset index and sanitize column names
 df = df.reset_index(drop=True)
 df.columns = [str(c) for c in df.columns]
 
-# Replace all NaN / pd.NA with None
-df = df.where(pd.notna(df), None)
-
-# Convert all columns to Arrow-compatible Python scalars
+# Convert all columns to Python-native types for Arrow
 for col in df.columns:
-    df[col] = df[col].apply(lambda x: x if isinstance(x, (str, int, float, type(None))) else str(x))
+    # Replace all missing values with None
+    df[col] = df[col].where(pd.notna(df[col]), None)
+    
+    # Convert pandas extension types to native Python scalars
+    if pd.api.types.is_integer_dtype(df[col]):
+        df[col] = df[col].astype("Int64").astype(object)
+    elif pd.api.types.is_float_dtype(df[col]):
+        df[col] = df[col].astype(float)
+    else:
+        # Everything else (strings, objects) -> str or None
+        df[col] = df[col].apply(lambda x: str(x) if x is not None else None)
 
-# Show info for debugging
+# Debug: print shape and head
 st.write("Shape:", df.shape)
 st.write(df.head())
 st.write(df.dtypes)
