@@ -110,18 +110,18 @@ st.write("Shape:", df.shape)
 st.write(df.head())
 st.write(df.dtypes)
 
-grid_response = AgGrid(df, height=600)
+#grid_response = AgGrid(df, height=600)
 
-#grid_response = AgGrid(
-#    df,
-#    gridOptions=grid_options,
-#    data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
-#    update_on=["cellValueChanged", "cellEditingStopped"],
-#    fit_columns_on_grid_load=True,
-#    allow_unsafe_jscode=True,
-#    enable_enterprise_modules=False,
-#    height=600  # removed deprecated reload_data
-#)
+grid_response = AgGrid(
+    df,
+    gridOptions=grid_options,
+    data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
+    update_on=["cellValueChanged", "cellEditingStopped"],
+    fit_columns_on_grid_load=True,
+    allow_unsafe_jscode=True,
+    enable_enterprise_modules=False,
+    height=600  # removed deprecated reload_data
+)
 
 df = pd.DataFrame(grid_response["data"])
 
