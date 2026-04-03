@@ -14,8 +14,8 @@ df = pd.read_csv(uploaded_file)
 df = df.reset_index(drop=True)
 df.columns = [str(c) for c in df.columns]
 
-# Coerce all columns to object (string/number mixed safe)
-df = df.astype(object)
+# Convert everything to string for Arrow
+df = df.astype(str)
 
 st.write("Shape:", df.shape)
 st.write(df.head())
