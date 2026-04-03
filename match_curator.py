@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import os
-from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode, JsCode
+from streamlit_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode, GridUpdateMode
+
 
 st.set_page_config(page_title="Pumpkin Match Curator", layout="wide")
 st.title("Pumpkin Match Curation (Click-to-Select)")
@@ -123,11 +124,10 @@ grid_response = AgGrid(
     df,
     gridOptions=grid_options,
     data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
-    update_on=["cellValueChanged", "cellEditingStopped"],
+    update_mode=GridUpdateMode.VALUE_CHANGED,
     fit_columns_on_grid_load=True,
     allow_unsafe_jscode=True,
     enable_enterprise_modules=False,
-    reload_data=True,
     key="main_grid",
     height=600
 )
