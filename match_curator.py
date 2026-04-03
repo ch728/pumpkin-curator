@@ -75,7 +75,7 @@ gb.configure_column("Include", editable=True, type=["booleanColumn"], width=80)
 
 # Source column (non-editable, gray)
 if "Source" in df.columns:
-    gb.configure_column("Source", editable=False, width=150)
+    gb.configure_column("Source", editable=False, cellStyle=source_cell_style, width=150)
 
 # Match columns
 for i in range(1, 6):
@@ -84,8 +84,8 @@ for i in range(1, 6):
         gb.configure_column(
             col,
             editable=True,
-            #cellStyle=cell_style_jscode,
-            #onCellClicked=click_js  # keep original click handler
+            cellStyle=cell_style_jscode,
+            onCellClicked=click_js  # keep original click handler
         )
 
 # Selected_Match column
@@ -99,6 +99,9 @@ grid_options = gb.build()
 # -----------------------------
 # Render AgGrid
 # -----------------------------
+
+grid_response = AgGrid(df, height=600)
+'''
 grid_response = AgGrid(
     df,
     gridOptions=grid_options,
@@ -109,7 +112,7 @@ grid_response = AgGrid(
     enable_enterprise_modules=False,
     height=600  # removed deprecated reload_data
 )
-
+'''
 df = pd.DataFrame(grid_response["data"])
 
 # -----------------------------
