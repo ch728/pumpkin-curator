@@ -4,7 +4,7 @@ import os
 from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode, JsCode
 
 st.set_page_config(page_title="Pumpkin Match Curator", layout="wide")
-st.title("Pumpkin Match Curation (Click-to-Select)")
+st.title("Pumpkin Match Curation")
 
 # -----------------------------
 # Upload match CSV
@@ -75,7 +75,7 @@ gb.configure_column("Include", editable=True, type=["booleanColumn"], width=80)
 
 # Source column (non-editable, gray)
 if "Source" in df.columns:
-    gb.configure_column("Source", editable=False, cellStyle=source_cell_style, width=150)
+    gb.configure_column("Source", editable=False, width=150)
 
 # Match columns
 for i in range(1, 6):
@@ -84,8 +84,8 @@ for i in range(1, 6):
         gb.configure_column(
             col,
             editable=True,
-            cellStyle=cell_style_jscode,
-            onCellClicked=click_js  # keep original click handler
+            #cellStyle=cell_style_jscode,
+            #onCellClicked=click_js  # keep original click handler
         )
 
 # Selected_Match column
