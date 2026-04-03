@@ -10,25 +10,22 @@ if uploaded_file is None:
 
 df = pd.read_csv(uploaded_file)
 
-# HARD sanitize
+# HARD sanitize for Arrow compatibility
 df = df.reset_index(drop=True)
 df.columns = [str(c) for c in df.columns]
 
-# Force all cells into Python-native types
-def make_arrow_safe(df):
-    for col in df.columns:
-        # Replace pd.NA with None
-        df[col] = df[col].where(pd.notna(df[col]), None)
-        # Convert pandas Extension types to native Python types
-        df[col] = df[col].apply(lambda x: x if x is None else x.item() if hasattr(x, 'item') else x)
-        # Force everything to str/int/float/None if mixed
-        df[col] = df[col].apply(lambda x: x if isinstance(x, (str, int, float, type(None))) else str(x))
-    return df
-
-df = make_arrow_safe(df)
+# Convert all columns to Arrow-compatible types
+for col in df.columns:
+    # Replace pd.NA or np.nan with None
+    df[col] = df[col].where(pd.notna(df[col]), None)
+    # Convert any pandas Extension types to native Python scalars
+    df[col] = df[col].apply(lambda x: x.item() if hasattr(x, 'item') else x)
+    # Finally, ensure type is one of str/int/float/None
+    df[col] = df[col].apply(lambda x: x if isinstance(x, (str, int, float, type(None))) else str(x))
 
 st.write("Shape:", df.shape)
 st.write(df.head())
 st.write(df.dtypes)
 
+# Render AgGrid safely
 AgGrid(df, height=600)
