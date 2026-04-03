@@ -23,7 +23,8 @@ df = df.infer_objects()
 # Initialize columns
 # -----------------------------
 if "Include" not in df.columns:
-    df.insert(0, "Include", False)  # unchecked by default
+    df.insert(0, "Include", False)
+df["Include"] = df["Include"].astype(bool)  # force native bool, never object
 if "Selected_Match" not in df.columns:
     df["Selected_Match"] = df["Match_1"]
 
