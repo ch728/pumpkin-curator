@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-from streamlit_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode, GridUpdateMode
+from streamlit-aggrid import AgGrid, GridOptionsBuilder, DataReturnMode, GridUpdateMode
 
 
 st.set_page_config(page_title="Pumpkin Match Curator", layout="wide")
