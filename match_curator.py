@@ -83,15 +83,10 @@ gb.configure_column(
     type=["booleanColumn"],
     cellRenderer=JsCode("""
         function(params) {
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.checked = params.value;
-            input.addEventListener('change', function() {
-                params.node.setDataValue('Include', input.checked);
-            });
-            return input;
+            return params.value ? '✅' : '☐';
         }
     """),
+    cellEditor="agLargeTextCellEditor",
     width=80
 )
 # Source column (non-editable, gray)
