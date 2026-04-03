@@ -79,14 +79,22 @@ gb.configure_default_column(editable=True, filter=True, sortable=True)
 # Include column
 gb.configure_column(
     "Include",
-    editable=True,
+    editable=False,
     type=["booleanColumn"],
-    cellRenderer=JsCode("""
+    cellRendererFramework=JsCode("""
         function(params) {
-            return params.value ? '✅' : '☐';
+            const eGui = document.createElement('span');
+            eGui.innerHTML = params.value ? '✅' : '☐';
+            eGui.style.cursor = 'pointer';
+            eGui.addEventListener('click', function() {
+                const currentValue = params.node.data.Include;
+                const newValue = !currentValue;
+                params.node.setDataValue('Include', newValue);
+                eGui.innerHTML = newValue ? '✅' : '☐';
+            });
+            return eGui;
         }
     """),
-    cellEditor="agLargeTextCellEditor",
     width=80
 )
 # Source column (non-editable, gray)
