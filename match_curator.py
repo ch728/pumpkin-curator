@@ -13,7 +13,8 @@ uploaded_file = st.file_uploader("Upload match CSV for curation", type="csv")
 if uploaded_file is None:
     st.stop()
 
-df = pd.read_csv(uploaded_file)
+# Use Pandas 2.0 PyArrow backend
+df = pd.read_csv(uploaded_file, dtype_backend="pyarrow")
 
 # -----------------------------
 # Initialize columns
@@ -65,19 +66,30 @@ function(params) {
 """)
 
 # -----------------------------
+# Convert to Python-native types for AgGrid
+# -----------------------------
+df = df.to_pandas()  # Arrow -> native Python scalars
+for col in df.columns:
+    # Replace any missing values with None
+    df[col] = df[col].where(pd.notna(df[col]), None)
+    # Convert nullable booleans to bool
+    if pd.api.types.is_bool_dtype(df[col]):
+        df[col] = df[col].astype(bool)
+    # Convert strings to native str
+    elif pd.api.types.is_string_dtype(df[col]):
+        df[col] = df[col].astype(str)
+
+# -----------------------------
 # Configure AgGrid
 # -----------------------------
 gb = GridOptionsBuilder.from_dataframe(df)
 gb.configure_default_column(editable=True, filter=True, sortable=True)
 
-# Include column
 gb.configure_column("Include", editable=True, type=["booleanColumn"], width=80)
 
-# Source column (non-editable, gray)
 if "Source" in df.columns:
     gb.configure_column("Source", editable=False, cellStyle=source_cell_style, width=150)
 
-# Match columns
 for i in range(1, 6):
     col = f"Match_{i}"
     if col in df.columns:
@@ -88,36 +100,13 @@ for i in range(1, 6):
             onCellClicked=click_js
         )
 
-# Selected_Match column
 gb.configure_column("Selected_Match", editable=False, width=200)
-
-# Enable copy/paste of all cells
 gb.configure_grid_options(enableRangeSelection=True, enableCopy=True)
-
 grid_options = gb.build()
 
 # -----------------------------
 # Render AgGrid
 # -----------------------------
-df.columns = [str(c) for c in df.columns]
-
-# Convert all nullable pandas types to native Python scalars
-for col in df.columns:
-    # Replace pd.NA or np.nan with None
-    df[col] = df[col].where(pd.notna(df[col]), None)
-    
-    # Convert boolean columns (nullable BoolDtype) to native bool
-    if pd.api.types.is_bool_dtype(df[col]):
-        df[col] = df[col].astype(bool)
-    
-    # Convert string columns (nullable StringDtype) to native str
-    elif pd.api.types.is_string_dtype(df[col]):
-        df[col] = df[col].astype(str)
-
-st.write("Shape:", df.shape)
-st.write(df.head())
-st.write(df.dtypes)
-
 grid_response = AgGrid(
     df,
     gridOptions=grid_options,
@@ -132,11 +121,10 @@ grid_response = AgGrid(
 df = pd.DataFrame(grid_response["data"])
 
 # -----------------------------
-# Save progress and export patch (downloads)
+# Save progress and export patch
 # -----------------------------
 st.subheader("Download / Export")
 
-# Save progress
 csv_progress = df.to_csv(index=False).encode("utf-8")
 st.download_button(
     label="Download Progress CSV",
@@ -145,7 +133,6 @@ st.download_button(
     mime="text/csv"
 )
 
-# Export patch CSV (exclude Source)
 patch_df = df[df["Include"] == True][["Query", "Selected_Match"]].copy()
 patch_df.columns = ["Old", "New"]
 csv_patch = patch_df.to_csv(index=False).encode("utf-8")
