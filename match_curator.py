@@ -81,18 +81,15 @@ gb.configure_column(
     "Include",
     editable=False,
     type=["booleanColumn"],
-    cellRendererFramework=JsCode("""
+    cellRenderer=JsCode("""
         function(params) {
-            const eGui = document.createElement('span');
-            eGui.innerHTML = params.value ? '✅' : '☐';
-            eGui.style.cursor = 'pointer';
-            eGui.addEventListener('click', function() {
-                const currentValue = params.node.data.Include;
-                const newValue = !currentValue;
-                params.node.setDataValue('Include', newValue);
-                eGui.innerHTML = newValue ? '✅' : '☐';
-            });
-            return eGui;
+            return params.value ? '✅' : '☐';
+        }
+    """),
+    onCellClicked=JsCode("""
+        function(params) {
+            const currentValue = params.node.data.Include;
+            params.node.setDataValue('Include', !currentValue);
         }
     """),
     width=80
