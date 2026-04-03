@@ -141,7 +141,7 @@ grid_response = AgGrid(
     height=600
 )
 df = pd.DataFrame(grid_response["data"])
-
+df["Include"] = df["Include"].map({True: True, False: False, "True": True, "False": False, "true": True, "false": False}).fillna(False).astype(bool)
 # -----------------------------
 # Save progress and export patch (downloads)
 # -----------------------------
