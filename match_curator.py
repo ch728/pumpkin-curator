@@ -105,22 +105,18 @@ grid_options = gb.build()
 # -----------------------------
 df.columns = [str(c) for c in df.columns]
 
-# Convert all nullable pandas types to native Python scalars
+# Convert all nullable pandas types to Arrow-compatible native types
 for col in df.columns:
-    # Replace pd.NA or np.nan with None
-    df[col] = df[col].where(pd.notna(df[col]), None)
-    
-    # Convert boolean columns (nullable BoolDtype) to native bool
-    if pd.api.types.is_bool_dtype(df[col]):
-        df[col] = df[col].astype(bool)
-    
-    # Convert string columns (nullable StringDtype) to native str
-    elif pd.api.types.is_string_dtype(df[col]):
-        df[col] = df[col].astype(str)
+    col_dtype = df[col].dtype
 
-st.write("Shape:", df.shape)
-st.write(df.head())
-st.write(df.dtypes)
+    if pd.api.types.is_bool_dtype(col_dtype):
+        df[col] = df[col].fillna(False).astype(bool)
+    elif pd.api.types.is_integer_dtype(col_dtype):
+        df[col] = df[col].fillna(0).astype("int64")
+    elif pd.api.types.is_float_dtype(col_dtype):
+        df[col] = df[col].astype("float64")
+    else:
+        df[col] = df[col].fillna("").astype(str)
 
 grid_response = AgGrid(
     df,
