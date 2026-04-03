@@ -5,7 +5,7 @@ from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode, GridUpdateMode
 
 
 st.set_page_config(page_title="Pumpkin Match Curator", layout="wide")
-st.title("Pumpkin Match Curation (Click-to-Select)")
+st.title("Pumpkin Match Curator")
 
 # -----------------------------
 # Upload match CSV
