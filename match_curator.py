@@ -16,7 +16,6 @@ df = df.reset_index(drop=True)
 df.columns = [str(c) for c in df.columns]
 
 st.write("Shape:", df.shape)
-st.write(df.head())
-st.write(df.dtypes)
+
 
 AgGrid(df, height=600)
