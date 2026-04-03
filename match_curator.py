@@ -127,9 +127,10 @@ grid_response = AgGrid(
     fit_columns_on_grid_load=True,
     allow_unsafe_jscode=True,
     enable_enterprise_modules=False,
+    reload_data=True,
+    key="main_grid",
     height=600
 )
-
 df = pd.DataFrame(grid_response["data"])
 
 # -----------------------------
