@@ -4,16 +4,18 @@ from st_aggrid import AgGrid
 
 st.title("Test")
 
-
 uploaded_file = st.file_uploader("Upload CSV", type="csv")
 if uploaded_file is None:
     st.stop()
 
 df = pd.read_csv(uploaded_file)
 
-# HARD sanitize (this is key)
+# HARD sanitize
 df = df.reset_index(drop=True)
 df.columns = [str(c) for c in df.columns]
+
+# Coerce all columns to object (string/number mixed safe)
+df = df.astype(object)
 
 st.write("Shape:", df.shape)
 st.write(df.head())
