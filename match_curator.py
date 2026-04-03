@@ -77,7 +77,14 @@ gb = GridOptionsBuilder.from_dataframe(df)
 gb.configure_default_column(editable=True, filter=True, sortable=True)
 
 # Include column
-gb.configure_column("Include", editable=True, type=["booleanColumn"], width=80)
+gb.configure_column(
+    "Include",
+    editable=True,
+    type=["booleanColumn"],
+    cellRenderer="agCheckboxCellRenderer",
+    cellEditor="agCheckboxCellEditor",
+    width=80
+)
 
 # Source column (non-editable, gray)
 if "Source" in df.columns:
