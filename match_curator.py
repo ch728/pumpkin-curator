@@ -10,8 +10,9 @@ if uploaded_file is None:
 
 df = pd.read_csv(uploaded_file)
 
-df = df.fillna("")
-for col in df.columns:
-    df[col] = df[col].astype(str)
+# HARD sanitize (this is key)
+df = df.reset_index(drop=True)
+df.columns = [str(c) for c in df.columns]
+
 
 AgGrid(df, height=600)
