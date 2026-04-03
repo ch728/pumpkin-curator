@@ -81,11 +81,19 @@ gb.configure_column(
     "Include",
     editable=True,
     type=["booleanColumn"],
-    cellRenderer="agCheckboxCellRenderer",
-    cellEditor="agCheckboxCellEditor",
+    cellRenderer=JsCode("""
+        function(params) {
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = params.value;
+            input.addEventListener('change', function() {
+                params.node.setDataValue('Include', input.checked);
+            });
+            return input;
+        }
+    """),
     width=80
 )
-
 # Source column (non-editable, gray)
 if "Source" in df.columns:
     gb.configure_column("Source", editable=False, cellStyle=source_cell_style, width=150)
