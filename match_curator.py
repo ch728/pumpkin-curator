@@ -99,6 +99,20 @@ grid_options = gb.build()
 # -----------------------------
 # Render AgGrid
 # -----------------------------
+df.columns = [str(c) for c in df.columns]
+
+# Convert all nullable pandas types to native Python scalars
+for col in df.columns:
+    # Replace pd.NA or np.nan with None
+    df[col] = df[col].where(pd.notna(df[col]), None)
+    
+    # Convert boolean columns (nullable BoolDtype) to native bool
+    if pd.api.types.is_bool_dtype(df[col]):
+        df[col] = df[col].astype(bool)
+    
+    # Convert string columns (nullable StringDtype) to native str
+    elif pd.api.types.is_string_dtype(df[col]):
+        df[col] = df[col].astype(str)
 
 st.write("Shape:", df.shape)
 st.write(df.head())
