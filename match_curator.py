@@ -61,7 +61,6 @@ function(params) {
         rowNodes: [params.node],
         force: true
     });
-    return params.value;
 }
 """)
 
@@ -86,7 +85,7 @@ for i in range(1, 6):
             col,
             editable=True,
             cellStyle=cell_style_jscode,
-            cellRenderer=click_js  # <-- moved from onCellClicked
+            onCellClicked=click_js  # keep original click handler
         )
 
 # Selected_Match column
@@ -108,7 +107,7 @@ grid_response = AgGrid(
     fit_columns_on_grid_load=True,
     allow_unsafe_jscode=True,
     enable_enterprise_modules=False,
-    height=600
+    height=600  # removed deprecated reload_data
 )
 
 df = pd.DataFrame(grid_response["data"])
