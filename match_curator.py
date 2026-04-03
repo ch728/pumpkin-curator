@@ -14,8 +14,8 @@ df = pd.read_csv(uploaded_file)
 df = df.reset_index(drop=True)
 df.columns = [str(c) for c in df.columns]
 
-# Convert everything to string for Arrow
-df = df.astype(str)
+# Convert all columns to plain Python objects for PyArrow/AgGrid
+df = df.astype(object).where(pd.notna(df), None)
 
 st.write("Shape:", df.shape)
 st.write(df.head())
