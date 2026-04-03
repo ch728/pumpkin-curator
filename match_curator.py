@@ -99,6 +99,9 @@ grid_options = gb.build()
 # -----------------------------
 # Render AgGrid
 # -----------------------------
+
+st.write("Shape:", df.shape)
+st.write(df.head())
 st.write(df.dtypes)
 
 grid_response = AgGrid(
