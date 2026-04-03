@@ -10,26 +10,39 @@ if uploaded_file is None:
 
 df = pd.read_csv(uploaded_file)
 
-# Reset index and sanitize columns
+# Reset index and sanitize column names
 df = df.reset_index(drop=True)
 df.columns = [str(c) for c in df.columns]
 
-# Force all columns to Python-native types for Arrow
+# Convert all columns to Arrow-compatible Python types
 for col in df.columns:
-    if pd.api.types.is_integer_dtype(df[col]):
-        df[col] = df[col].astype("Int64").astype(object)  # nullable integers -> object
+    # Replace missing values with None
+    df[col] = df[col].where(pd.notna(df[col]), None)
+    
+    # Force dtype to object for strings / mixed types
+    if pd.api.types.is_string_dtype(df[col]) or pd.api.types.is_categorical_dtype(df[col]):
+        df[col] = df[col].astype(object)
+    
+    # Nullable integers -> object
+    elif pd.api.types.is_integer_dtype(df[col]):
+        df[col] = df[col].astype(object)
+    
+    # Floats -> keep as float
     elif pd.api.types.is_float_dtype(df[col]):
         df[col] = df[col].astype(float)
+    
+    # Booleans -> object
     elif pd.api.types.is_bool_dtype(df[col]):
         df[col] = df[col].astype(object)
+    
+    # Other / unknown types -> str
     else:
-        # Anything else (StringDtype, object, categorical) -> str or None
-        df[col] = df[col].where(pd.notna(df[col]), None).astype(object)
+        df[col] = df[col].astype(str)
 
-# Debug
+# Debug output
 st.write("Shape:", df.shape)
 st.write(df.head())
 st.write(df.dtypes)
 
-# Render table
+# Render AgGrid
 AgGrid(df, height=600)
