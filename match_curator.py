@@ -2,60 +2,49 @@ import streamlit as st
 import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode, JsCode
 
-# -----------------------------
-# Page config
-# -----------------------------
 st.set_page_config(page_title="Pumpkin Match Curator", layout="wide")
 st.title("Pumpkin Match Curation (Click-to-Select)")
 
 # -----------------------------
-# Upload match CSV
+# Upload CSV
 # -----------------------------
 uploaded_file = st.file_uploader("Upload match CSV for curation", type="csv")
 if uploaded_file is None:
     st.stop()
 
-# Read CSV
 df = pd.read_csv(uploaded_file)
 
 # -----------------------------
 # Initialize columns
 # -----------------------------
 if "Include" not in df.columns:
-    df.insert(0, "Include", False)  # unchecked by default
+    df.insert(0, "Include", False)
 if "Selected_Match" not in df.columns:
     df["Selected_Match"] = df["Match_1"]
 
 # -----------------------------
-# Convert all nullable pandas types to native Python scalars
-# This fixes PyArrow serialization issues
+# Convert all columns to native Python types
 # -----------------------------
-for col in df.columns:
-    # Replace missing values with None
-    df[col] = df[col].where(pd.notna(df[col]), None)
-    
-    # Nullable booleans -> bool
-    if pd.api.types.is_bool_dtype(df[col]):
-        df[col] = df[col].astype(bool)
-    
-    # Nullable strings -> str
-    elif pd.api.types.is_string_dtype(df[col]):
-        df[col] = df[col].astype(str)
-    
-    # Nullable integers -> int
-    elif pd.api.types.is_integer_dtype(df[col]):
-        df[col] = df[col].astype('Int64').astype(object)
-    
-    # Float columns -> float
-    elif pd.api.types.is_float_dtype(df[col]):
-        df[col] = df[col].astype(float)
-    
-    # Fallback: everything else -> str
-    else:
-        df[col] = df[col].apply(lambda x: str(x) if x is not None else None)
+rows = []
+for _, r in df.iterrows():
+    row = {}
+    for c in df.columns:
+        val = r[c]
+        # convert pandas NA, nan, etc to None
+        if pd.isna(val):
+            val = None
+        # convert booleans, numbers, strings to native Python
+        elif isinstance(val, (pd.BooleanDtype, pd.BooleanDtype().type)):
+            val = bool(val)
+        elif isinstance(val, (int, float, str, bool)):
+            val = val
+        else:
+            val = str(val)
+        row[str(c)] = val
+    rows.append(row)
 
 # -----------------------------
-# AgGrid JavaScript for highlighting
+# AgGrid JS
 # -----------------------------
 cell_style_jscode = JsCode("""
 function(params) {
@@ -88,10 +77,7 @@ function(params) {
 click_js = JsCode("""
 function(params) {
     params.node.setDataValue('Selected_Match', params.value);
-    params.api.refreshCells({
-        rowNodes: [params.node],
-        force: true
-    });
+    params.api.refreshCells({ rowNodes: [params.node], force: true });
 }
 """)
 
@@ -100,29 +86,17 @@ function(params) {
 # -----------------------------
 gb = GridOptionsBuilder.from_dataframe(df)
 gb.configure_default_column(editable=True, filter=True, sortable=True)
-
-# Include column
 gb.configure_column("Include", editable=True, type=["booleanColumn"], width=80)
 
-# Source column (non-editable, gray)
 if "Source" in df.columns:
     gb.configure_column("Source", editable=False, cellStyle=source_cell_style, width=150)
 
-# Match columns
 for i in range(1, 6):
     col = f"Match_{i}"
     if col in df.columns:
-        gb.configure_column(
-            col,
-            editable=True,
-            cellStyle=cell_style_jscode,
-            onCellClicked=click_js
-        )
+        gb.configure_column(col, editable=True, cellStyle=cell_style_jscode, onCellClicked=click_js)
 
-# Selected_Match column
 gb.configure_column("Selected_Match", editable=False, width=200)
-
-# Enable copy/paste of all cells
 gb.configure_grid_options(enableRangeSelection=True, enableCopy=True)
 
 grid_options = gb.build()
@@ -131,7 +105,7 @@ grid_options = gb.build()
 # Render AgGrid
 # -----------------------------
 grid_response = AgGrid(
-    df,
+    rows,
     gridOptions=grid_options,
     data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
     update_on=["cellValueChanged", "cellEditingStopped"],
@@ -141,31 +115,17 @@ grid_response = AgGrid(
     height=600
 )
 
-# Update df with user edits
+# Update df from AgGrid
 df = pd.DataFrame(grid_response["data"])
 
 # -----------------------------
-# Save progress and export patch
+# Download / Export
 # -----------------------------
 st.subheader("Download / Export")
-
-# Save progress
 csv_progress = df.to_csv(index=False).encode("utf-8")
-st.download_button(
-    label="Download Progress CSV",
-    data=csv_progress,
-    file_name="curation_progress.csv",
-    mime="text/csv"
-)
+st.download_button("Download Progress CSV", data=csv_progress, file_name="curation_progress.csv", mime="text/csv")
 
-# Export patch CSV (only included rows)
-if "Include" in df.columns and "Query" in df.columns and "Selected_Match" in df.columns:
-    patch_df = df[df["Include"] == True][["Query", "Selected_Match"]].copy()
-    patch_df.columns = ["Old", "New"]
-    csv_patch = patch_df.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        label="Download Patch CSV",
-        data=csv_patch,
-        file_name="patch.csv",
-        mime="text/csv"
-    )
+patch_df = df[df["Include"] == True][["Query", "Selected_Match"]].copy()
+patch_df.columns = ["Old", "New"]
+csv_patch = patch_df.to_csv(index=False).encode("utf-8")
+st.download_button("Download Patch CSV", data=csv_patch, file_name="patch.csv", mime="text/csv")
