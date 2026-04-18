@@ -162,8 +162,9 @@ st.download_button(
 )
 
 # Export patch CSV (exclude Source)
-patch_df = df[df["Include"] == True][["Query", "Selected_Match"]].copy()
-patch_df.columns = ["Old", "New"]
+
+patch_df = df[df["Include"] == True][["Source","Query", "Selected_Match"]].copy()
+patch_df.columns = ["Accession","Old", "New"]
 csv_patch = patch_df.to_csv(index=False).encode("utf-8")
 st.download_button(
     label="Download Patch CSV",
